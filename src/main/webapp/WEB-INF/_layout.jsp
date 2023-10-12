@@ -23,7 +23,7 @@
 
         <a href="<%= context %>/" class="site-logo right">Java 202</a>
         <ul id="nav-mobile">
-            <li><a href="#">JSP</a></li>
+            <li><a href="<%= contextCulture %>/jsp">JSP</a></li>
 
             <li <%= "filters.jsp".equals(pageBody) ? "class='active'" : "" %>
             ><a href="<%= contextCulture %>/filters">Filters</a></li>
