@@ -1,27 +1,31 @@
 package step.learning.dto.models;
 
+import org.apache.commons.fileupload.FileItem;
+import step.learning.services.formparse.FormParseResult;
+
 import javax.servlet.http.HttpServletRequest;
 import java.awt.*;
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class SignupFormModel {
     private static final SimpleDateFormat formDateFormat =
             new SimpleDateFormat( "yyyy-MM-dd" ) ;
 
-    public SignupFormModel( HttpServletRequest request ) throws ParseException {
-        this.setLogin( request.getParameter( "reg-login" ) ) ;
-        this.setName( request.getParameter( "reg-name" ) ) ;
-        this.setPhone( request.getParameter( "reg-phone" ) ); ;
-        this.setPassword( request.getParameter( "reg-password" ) ) ;
-        this.setRepeat( request.getParameter( "reg-repeat" ) ) ;
-        this.setEmail( request.getParameter( "reg-email" ) ) ;
-        this.setAgree( request.getParameter( "reg-agree" ) ) ;
-        this.setBirthdate( request.getParameter( "reg-birthdate" ) ) ;
+    public SignupFormModel( FormParseResult formParseResult ) throws ParseException {
+        Map<String, String> fields = formParseResult.getFields();
+        this.setLogin( fields.get( "reg-login" ) ) ;
+        this.setName( fields.get( "reg-name" ) ) ;
+        this.setPhone( fields.get( "reg-phone" ) ); ;
+        this.setPassword( fields.get( "reg-password" ) ) ;
+        this.setRepeat( fields.get( "reg-repeat" ) ) ;
+        this.setEmail( fields.get( "reg-email" ) ) ;
+        this.setAgree( fields.get( "reg-agree" ) ) ;
+        this.setBirthdate( fields.get( "reg-birthdate" ) ) ;
+        this.setAvatar(formParseResult);
     }
 
     /**
@@ -143,9 +147,47 @@ public class SignupFormModel {
     private String email ;
     private Date birthdate ;
     private Boolean isAgree ;
+    private String avatar; // filename or url
     // endregion
 
     // region accessors
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public void setAvatar(FormParseResult formParseResult) {
+        Map<String, FileItem> files = formParseResult.getFiles();
+        if(! files.containsKey("reg-avatar")) {
+            this.avatar = null;
+            return;
+        }
+        FileItem fileItem = files.get("reg-avatar");
+        String uploadedFilename = fileItem.getName();
+        int dotIndex = uploadedFilename.lastIndexOf('.');
+        String ext = uploadedFilename.substring(dotIndex);
+        String[] extensions = {".jpg", ".jpeg", ".png", ".ico", ".gif"}; // valid extensions
+        if(!Arrays.asList(extensions).contains(ext)){
+            // throw exception if extension is invalid
+            throw new RuntimeException("Invalid file extension");
+        }
+        // generate file dir
+        String uploadDir = formParseResult.getRequest().getServletContext().getRealPath("./uploads/avatar/");
+        // generate random file name
+        String savedFilename;
+        File savedFile;
+        do {
+            savedFilename = UUID.randomUUID().toString().substring(0, 8) + ext;
+            savedFile = new File(uploadDir, savedFilename);
+        } while( savedFile.exists() );
+        try {
+            fileItem.write(savedFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        this.setAvatar(savedFilename);
+    }
     public void setBirthdate( String birthdate ) throws ParseException {
         if( birthdate == null || birthdate.isEmpty() ) {
             this.birthdate = null ;

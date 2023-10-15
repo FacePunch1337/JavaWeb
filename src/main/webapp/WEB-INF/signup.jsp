@@ -105,6 +105,15 @@
                 <span class="helper-text" data-error="<%= validationErrors.get("isAgree") %>"></span>
                 <% } %>
             </div>
+            <div class="file-field input-field">
+                <div class="btn deep-purple lighter-2">
+                    <span><i class="material-icons">photo_library</i></span>
+                    <input type="file" name="reg-avatar">
+                </div>
+                <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text" placeholder="Photo avatar">
+                </div>
+            </div>
 
             <div class="input-field col s8 right-align">
                 <button class="waves-effect waves-light btn pink">
